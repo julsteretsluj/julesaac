@@ -1,17 +1,20 @@
 import { useId, useState, type FormEvent } from "react";
 import { createId } from "../lib/ids.ts";
+import { symbolChoices, symbolName } from "../lib/symbols.ts";
 import { useBoard } from "../state/BoardContext.tsx";
 import { MAX_BRIEF, MAX_CATEGORY, MAX_FULL, MAX_LABEL, type Category, type Phrase } from "../types.ts";
 import { StatusLine } from "./StatusLine.tsx";
+import { Symbol } from "./Symbol.tsx";
 
 interface PhraseFields {
   label: string;
   brief: string;
   full: string;
   categoryId: string;
+  symbol: string;
 }
 
-const emptyFields: PhraseFields = { label: "", brief: "", full: "", categoryId: "" };
+const emptyFields: PhraseFields = { label: "", brief: "", full: "", categoryId: "", symbol: "" };
 
 function fieldErrors(fields: PhraseFields, categories: Category[]): Record<string, string> {
   const errors: Record<string, string> = {};
@@ -147,13 +150,14 @@ function NewPhraseForm({
         label,
         brief,
         full: fields.full.trim(),
+        symbol: fields.symbol,
         sample: false,
         favorite: false,
         calm: false,
         order: 0,
       },
     });
-    setFields({ ...emptyFields, categoryId: fields.categoryId });
+    setFields({ ...emptyFields, categoryId: fields.categoryId, symbol: "" });
     setErrors({});
     onAdded(label);
   }
@@ -204,6 +208,7 @@ function PhraseCard({
     brief: phrase.brief,
     full: phrase.full,
     categoryId: phrase.categoryId,
+    symbol: phrase.symbol,
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
   const categoryName = categories.find((category) => category.id === phrase.categoryId)?.name;
@@ -225,6 +230,7 @@ function PhraseCard({
         label: fields.label.trim(),
         brief: fields.brief.trim() || fields.full.trim(),
         full: fields.full.trim(),
+        symbol: fields.symbol,
         categoryId: fields.categoryId,
       },
     });
@@ -234,7 +240,10 @@ function PhraseCard({
 
   return (
     <article className="edit-card">
-      <p className="phrase-title">{phrase.label}</p>
+      <div className="edit-preview">
+        <Symbol id={phrase.symbol} label={phrase.label} />
+        <p className="phrase-title">{phrase.label}</p>
+      </div>
       <p className="phrase-body">{phrase.brief}</p>
       {phrase.full && phrase.full !== phrase.brief ? <p className="help">{phrase.full}</p> : null}
       <p className="flag">
@@ -297,11 +306,12 @@ function PhraseCard({
               brief: phrase.brief,
               full: phrase.full,
               categoryId: phrase.categoryId,
+              symbol: phrase.symbol,
             });
             setErrors({});
           }}
         >
-          {editing ? "Close editor" : "Edit words"}
+          {editing ? "Close editor" : "Edit this button"}
         </button>
         {confirming ? (
           <>
@@ -359,6 +369,37 @@ function PhraseFieldsForm({
 }) {
   return (
     <div className="stack">
+      <div className="field">
+        <span className="field-label" id={`${baseId}-picture`}>
+          Picture
+        </span>
+        <div className="symbol-picker" role="group" aria-labelledby={`${baseId}-picture`}>
+          <button
+            type="button"
+            className="symbol-choice"
+            aria-pressed={fields.symbol === ""}
+            aria-label="Letter placeholder"
+            onClick={() => onChange({ ...fields, symbol: "" })}
+          >
+            <Symbol id="" label={fields.label || "A"} />
+          </button>
+          {symbolChoices.map((choice) => (
+            <button
+              key={choice.id}
+              type="button"
+              className="symbol-choice"
+              aria-pressed={fields.symbol === choice.id}
+              aria-label={choice.name}
+              onClick={() => onChange({ ...fields, symbol: choice.id })}
+            >
+              <Symbol id={choice.id} label="" />
+            </button>
+          ))}
+        </div>
+        <p className="help">
+          {fields.symbol ? symbolName(fields.symbol) : "Letter placeholder"}. The short name stays under the picture.
+        </p>
+      </div>
       <div className="field">
         <label className="field-label" htmlFor={`${baseId}-label`}>
           Short name

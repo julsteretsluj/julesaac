@@ -25,6 +25,7 @@ export interface Phrase {
   label: string;
   brief: string;
   full: string;
+  symbol: string;
   sample: boolean;
   favorite: boolean;
   calm: boolean;
@@ -73,5 +74,6 @@ export interface SamplePhrase {
   label: string;
   brief: string;
   full: string;
+  symbol: string;
   calm: boolean;
 }

@@ -1,11 +1,13 @@
 import { useMemo, useState, type KeyboardEvent } from "react";
 import { categoryIntro } from "../data/samples.ts";
 import { phraseInsertion } from "../lib/phraseText.ts";
+import { pageTone } from "../lib/symbols.ts";
 import { useBoard } from "../state/BoardContext.tsx";
 import type { Phrase } from "../types.ts";
 import { EditBoard } from "./EditBoard.tsx";
 import { PhraseButton } from "./PhraseButton.tsx";
 import { StatusLine } from "./StatusLine.tsx";
+import { Symbol } from "./Symbol.tsx";
 
 type BoardMode = "use" | "edit";
 
@@ -107,7 +109,12 @@ export function BoardSection() {
           <ul className="phrase-grid">
             {phrases.map((phrase) => (
               <li key={phrase.id}>
-                <PhraseButton phrase={phrase} phrasing={board.settings.phrasing} onInsert={onInsert} />
+                <PhraseButton
+                  phrase={phrase}
+                  phrasing={board.settings.phrasing}
+                  tone={pageTone(phrase.categoryId, categories.find((category) => category.id === phrase.categoryId)?.order ?? 0)}
+                  onInsert={onInsert}
+                />
               </li>
             ))}
           </ul>
@@ -124,8 +131,13 @@ export function BoardSection() {
             <ul className="phrase-grid">
               {board.recents.map((entry) => (
                 <li key={entry.id}>
-                  <button type="button" className="phrase" onClick={() => onRecent(entry.text)}>
-                    <span className="phrase-title">{entry.text}</span>
+                  <button type="button" className="cell" data-tone="yellow" aria-label={entry.text} onClick={() => onRecent(entry.text)}>
+                    <span className="cell-art">
+                      <Symbol id="message" label="" />
+                    </span>
+                    <span className="cell-label" aria-hidden="true">
+                      {entry.text}
+                    </span>
                   </button>
                 </li>
               ))}

@@ -10,6 +10,7 @@ import {
   withMissingSamples,
   withResetSampleWording,
 } from "./board.ts";
+import { isSymbolId } from "./symbols.ts";
 import { loadBoard, parseBackup, saveBoard, type KeyValueStore } from "./storage.ts";
 
 function memoryStore(initial: Record<string, string> = {}): KeyValueStore & { dump: () => Map<string, string> } {
@@ -54,6 +55,12 @@ describe("default board", () => {
       "backing me up",
     ]) {
       assert.match(text.toLowerCase(), new RegExp(snippet.toLowerCase()));
+    }
+  });
+
+  it("gives every sample button a known picture", () => {
+    for (const phrase of board.phrases) {
+      assert.equal(isSymbolId(phrase.symbol), true, phrase.id);
     }
   });
 
@@ -165,8 +172,13 @@ describe("reduceBoard", () => {
     board = withMissingSamples(board);
     assert.equal(board.phrases.find((phrase) => phrase.id === "social-yes")?.brief, "Yes please.");
     assert.equal(board.phrases.some((phrase) => phrase.id === "needs-hungry"), true);
+    board = reduceBoard(board, {
+      type: "update-phrase",
+      phrase: { ...board.phrases.find((phrase) => phrase.id === "social-yes")!, symbol: "" },
+    });
     board = withResetSampleWording(board);
     assert.equal(board.phrases.find((phrase) => phrase.id === "social-yes")?.brief, "Yes.");
+    assert.equal(board.phrases.find((phrase) => phrase.id === "social-yes")?.symbol, "yes");
   });
 
   it("merges by id and can replace the vocabulary", () => {
@@ -219,6 +231,26 @@ describe("storage", () => {
     assert.match(loaded.warning ?? "", /couldn't be read/i);
     assert.equal(loaded.unreadableRaw, "{not json");
     assert.ok(loaded.board.phrases.length > 0);
+  });
+
+  it("fills a missing sample picture and keeps a chosen placeholder", () => {
+    const board = createDefaultBoard();
+    const raw = {
+      ...board,
+      phrases: board.phrases.map((phrase) => {
+        if (phrase.id === "social-yes") {
+          const { symbol: _symbol, ...rest } = phrase;
+          return rest;
+        }
+        if (phrase.id === "needs-hungry") return { ...phrase, symbol: "" };
+        if (phrase.id === "social-no") return { ...phrase, symbol: "not-a-voice" };
+        return phrase;
+      }),
+    };
+    const loaded = sanitizeBoard(raw);
+    assert.equal(loaded?.phrases.find((phrase) => phrase.id === "social-yes")?.symbol, "yes");
+    assert.equal(loaded?.phrases.find((phrase) => phrase.id === "needs-hungry")?.symbol, "");
+    assert.equal(loaded?.phrases.find((phrase) => phrase.id === "social-no")?.symbol, "");
   });
 
   it("drops a phrase that has no words", () => {

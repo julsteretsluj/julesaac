@@ -1,4 +1,5 @@
 import { sampleCategories, samplePhrases } from "../data/samples.ts";
+import { isSymbolId } from "./symbols.ts";
 import {
   DATA_VERSION,
   MAX_BRIEF,
@@ -67,22 +68,37 @@ export function createDefaultBoard(): BoardData {
     phrases: samplePhrases.map((phrase) => {
       const order = phraseOrders.get(phrase.categoryId) ?? 0;
       phraseOrders.set(phrase.categoryId, order + 1);
-      return {
-        id: phrase.id,
-        categoryId: phrase.categoryId,
-        label: phrase.label,
-        brief: phrase.brief,
-        full: phrase.full,
-        sample: true,
-        favorite: false,
-        calm: phrase.calm,
-        order,
-      };
+      return phraseFromSample(phrase, order);
     }),
     recents: [],
     draft: "",
     settings: { ...defaultSettings },
   };
+}
+
+function normalizeSymbol(value: unknown): string {
+  return typeof value === "string" && isSymbolId(value) ? value : "";
+}
+
+function phraseFromSample(phrase: (typeof samplePhrases)[number], order: number): Phrase {
+  return {
+    id: phrase.id,
+    categoryId: phrase.categoryId,
+    label: phrase.label,
+    brief: phrase.brief,
+    full: phrase.full,
+    symbol: normalizeSymbol(phrase.symbol),
+    sample: true,
+    favorite: false,
+    calm: phrase.calm,
+    order,
+  };
+}
+
+export function phraseSymbol(phrase: { id: string; symbol?: string }): string {
+  if (typeof phrase.symbol === "string") return normalizeSymbol(phrase.symbol);
+  const sample = samplePhrases.find((item) => item.id === phrase.id);
+  return sample ? normalizeSymbol(sample.symbol) : "";
 }
 
 function clip(value: string, max: number): string {
@@ -204,17 +220,7 @@ export function withMissingSamples(state: BoardData): BoardData {
   for (const sample of samplePhrases) {
     if (phraseIds.has(sample.id) || !categoryIds.has(sample.categoryId)) continue;
     const order = phrases.filter((phrase) => phrase.categoryId === sample.categoryId).length;
-    phrases.push({
-      id: sample.id,
-      categoryId: sample.categoryId,
-      label: sample.label,
-      brief: sample.brief,
-      full: sample.full,
-      sample: true,
-      favorite: false,
-      calm: sample.calm,
-      order,
-    });
+    phrases.push(phraseFromSample(sample, order));
     phraseIds.add(sample.id);
   }
 
@@ -237,6 +243,7 @@ export function withResetSampleWording(state: BoardData): BoardData {
         label: sample.label,
         brief: sample.brief,
         full: sample.full,
+        symbol: normalizeSymbol(sample.symbol),
         sample: true,
       };
     }),
@@ -299,6 +306,9 @@ export function sanitizeBoard(value: unknown): BoardData | null {
     const label = typeof entry.label === "string" ? clip(entry.label, MAX_LABEL) : "";
     let brief = typeof entry.brief === "string" ? clip(entry.brief, MAX_BRIEF) : "";
     let full = typeof entry.full === "string" ? clip(entry.full, MAX_FULL) : "";
+    const sampleSymbol = samplePhrases.find((phrase) => phrase.id === id)?.symbol;
+    const symbol =
+      typeof entry.symbol === "string" ? normalizeSymbol(entry.symbol) : normalizeSymbol(sampleSymbol);
     if (!brief && full) brief = full;
     if (!full && brief) full = "";
     if (!label || !brief) return;
@@ -309,6 +319,7 @@ export function sanitizeBoard(value: unknown): BoardData | null {
       label,
       brief,
       full,
+      symbol,
       sample: samplePhraseIds.has(id) || entry.sample === true,
       favorite: entry.favorite === true,
       calm: entry.calm === true,
@@ -381,7 +392,10 @@ export function reduceBoard(state: BoardData, action: BoardAction): BoardData {
       const order = state.phrases.filter((phrase) => phrase.categoryId === action.phrase.categoryId).length;
       return {
         ...state,
-        phrases: reindexPhrases([...state.phrases, { ...action.phrase, order, sample: false }]),
+        phrases: reindexPhrases([
+          ...state.phrases,
+          { ...action.phrase, symbol: normalizeSymbol(action.phrase.symbol), order, sample: false },
+        ]),
       };
     }
     case "update-phrase": {
@@ -396,7 +410,9 @@ export function reduceBoard(state: BoardData, action: BoardAction): BoardData {
         ...state,
         phrases: reindexPhrases(
           state.phrases.map((phrase) =>
-            phrase.id === action.phrase.id ? { ...action.phrase, order, sample: existing.sample } : phrase,
+            phrase.id === action.phrase.id
+              ? { ...action.phrase, symbol: normalizeSymbol(action.phrase.symbol), order, sample: existing.sample }
+              : phrase,
           ),
         ),
       };

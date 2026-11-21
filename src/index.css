@@ -371,14 +371,19 @@ textarea {
 @media (hover: hover) and (pointer: fine) {
   .btn:hover:not(:disabled),
   .tab:hover,
-  .phrase:hover,
-  .segmented button:hover {
+  .segmented button:hover,
+  .symbol-choice:hover:not([aria-pressed="true"]) {
     background: var(--bg-hover);
+  }
+
+  .cell:hover .cell-art {
+    background: var(--cell-hover);
   }
 
   .btn-primary:hover:not(:disabled),
   .segmented button[aria-pressed="true"]:hover,
-  .btn[aria-pressed="true"]:hover {
+  .btn[aria-pressed="true"]:hover,
+  .symbol-choice[aria-pressed="true"]:hover {
     background: var(--accent-hover);
   }
 
@@ -388,10 +393,13 @@ textarea {
 }
 
 .btn:active:not(:disabled),
-.phrase:active,
 .tab:active,
 .segmented button:active {
   background: var(--bg-active);
+}
+
+.cell:active .cell-art {
+  background: var(--cell-hover);
 }
 
 .status-line {
@@ -436,12 +444,12 @@ textarea {
 
 .phrase-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(min(100%, 16rem), 1fr));
-  gap: 0.75rem;
+  grid-template-columns: repeat(auto-fill, minmax(6.6rem, 1fr));
+  gap: 0.55rem;
 }
 
 .phrase-grid-calm {
-  grid-template-columns: repeat(auto-fill, minmax(min(100%, 18rem), 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(8.25rem, 1fr));
 }
 
 .phrase-grid li {
@@ -449,26 +457,141 @@ textarea {
   min-width: 0;
 }
 
-.phrase {
+.cell {
+  --cell: #f3e07a;
+  --cell-hover: #e6d15d;
   flex: 1;
   width: 100%;
-  min-height: 4.75rem;
-  padding: 0.9rem 1rem;
-  border-radius: 12px;
-  border: 1px solid var(--line);
-  background: var(--bg-elevated);
-  color: var(--ink);
-  text-align: left;
+  min-height: 8.25rem;
+  padding: 0;
+  border-radius: 10px;
+  border: 2px solid rgba(29, 29, 31, 0.55);
+  background: #f4f4f2;
+  color: #1d1d1f;
   display: flex;
   flex-direction: column;
-  align-items: flex-start;
-  justify-content: center;
-  gap: 0.25rem;
+  overflow: hidden;
+  text-align: center;
 }
 
-.phrase-large {
-  min-height: 5.5rem;
-  padding: 1.1rem 1.15rem;
+.cell[data-tone="yellow"] {
+  --cell: #f3e07a;
+  --cell-hover: #e6d15d;
+}
+
+.cell[data-tone="green"] {
+  --cell: #8fce8b;
+  --cell-hover: #78c073;
+}
+
+.cell[data-tone="blue"] {
+  --cell: #8eb4e3;
+  --cell-hover: #79a6db;
+}
+
+.cell[data-tone="orange"] {
+  --cell: #f0b15a;
+  --cell-hover: #e3a246;
+}
+
+.cell[data-tone="purple"] {
+  --cell: #c7a3dc;
+  --cell-hover: #b68fd0;
+}
+
+.cell[data-tone="pink"] {
+  --cell: #f0b4c6;
+  --cell-hover: #e5a3b7;
+}
+
+.cell-large {
+  min-height: 9.5rem;
+}
+
+.cell-art {
+  position: relative;
+  flex: 1;
+  display: grid;
+  place-items: center;
+  min-height: 5.25rem;
+  padding: 0.55rem 0.4rem 0.35rem;
+  background: var(--cell);
+}
+
+.cell-art .symbol {
+  width: min(72%, 4.4rem);
+  height: auto;
+}
+
+.cell-large .cell-art .symbol {
+  width: min(74%, 5.25rem);
+}
+
+.cell-star {
+  position: absolute;
+  top: 0.3rem;
+  right: 0.35rem;
+  font-size: 0.85rem;
+  line-height: 1;
+}
+
+.cell-label {
+  flex: 0 0 auto;
+  min-height: 2.7rem;
+  padding: 0.35rem 0.4rem 0.45rem;
+  background: #f4f4f2;
+  color: #1d1d1f;
+  font-size: 0.92rem;
+  font-weight: 700;
+  line-height: 1.15;
+  letter-spacing: -0.01em;
+  overflow-wrap: anywhere;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  overflow: hidden;
+}
+
+.symbol-picker {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(3.25rem, 1fr));
+  gap: 0.4rem;
+}
+
+.symbol-choice {
+  min-height: 3.25rem;
+  aspect-ratio: 1;
+  padding: 0.3rem;
+  border-radius: 8px;
+  border: 1px solid var(--line);
+  background: var(--bg-sunken);
+  color: var(--ink);
+  display: grid;
+  place-items: center;
+}
+
+.symbol-choice .symbol {
+  width: 1.7rem;
+  height: 1.7rem;
+}
+
+.symbol-choice[aria-pressed="true"] {
+  background: var(--accent);
+  color: var(--accent-ink);
+  border-color: var(--accent);
+}
+
+.edit-preview {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.edit-preview .symbol {
+  width: 2.5rem;
+  height: 2.5rem;
+  flex: 0 0 auto;
 }
 
 .phrase-title {
@@ -644,7 +767,7 @@ textarea {
 
 @media (forced-colors: active) {
   .btn,
-  .phrase,
+  .cell,
   .tab,
   .composer,
   .edit-card {

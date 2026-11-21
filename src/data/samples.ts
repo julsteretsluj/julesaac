@@ -7,7 +7,7 @@ export const sampleCategories: SampleCategory[] = [
   { id: "mine", name: "My phrases" },
 ];
 
-export const samplePhrases: SamplePhrase[] = [
+const phraseList: Omit<SamplePhrase, "symbol">[] = [
   {
     id: "status-cant-talk",
     categoryId: "status",
@@ -353,6 +353,57 @@ export const samplePhrases: SamplePhrase[] = [
     calm: false,
   },
 ];
+
+const sampleSymbols: Record<string, string> = {
+  "status-cant-talk": "mute",
+  "status-quiet": "quiet",
+  "status-shutdown": "space",
+  "status-processing": "wait",
+  "status-support": "support",
+  "status-break": "break",
+  "status-hearing": "listen",
+  "status-text": "type",
+  "status-dont-touch": "no-touch",
+  "status-leave": "leave",
+  "needs-hungry": "food",
+  "needs-thirsty": "drink",
+  "needs-bathroom": "bathroom",
+  "needs-hot": "hot",
+  "needs-cold": "cold",
+  "needs-pressure": "pressure",
+  "needs-pain": "pain",
+  "needs-tired": "tired",
+  "needs-overstim": "overwhelm",
+  "needs-headache": "headache",
+  "needs-sit": "sit",
+  "needs-eat-soon": "food",
+  "social-yes": "yes",
+  "social-no": "no",
+  "social-maybe": "maybe",
+  "social-literal": "literal",
+  "social-scheduled": "schedule",
+  "social-more": "more",
+  "social-unfair": "unfair",
+  "social-thanks": "thanks",
+  "social-agree": "agree",
+  "social-disagree": "disagree",
+  "social-repeat": "repeat",
+  "social-minute": "minute",
+  "social-enough": "enough",
+  "social-quiet-ok": "okay",
+  "social-dont-know": "maybe",
+  "social-slow": "slow",
+  "social-stop": "stop",
+  "mine-not-upset": "calm",
+  "mine-short": "short",
+  "mine-writing": "writing",
+  "mine-one-question": "one",
+};
+
+export const samplePhrases: SamplePhrase[] = phraseList.map((phrase) => ({
+  ...phrase,
+  symbol: sampleSymbols[phrase.id] ?? "",
+}));
 
 export function categoryIntro(categoryId: string): string {
   switch (categoryId) {

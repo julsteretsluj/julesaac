@@ -1,4 +1,5 @@
 import { phraseInsertion } from "../lib/phraseText.ts";
+import { pageTone } from "../lib/symbols.ts";
 import { useBoard } from "../state/BoardContext.tsx";
 import type { Phrase } from "../types.ts";
 import { PhraseButton } from "./PhraseButton.tsx";
@@ -39,6 +40,7 @@ export function CalmBoard({ onNotice }: { onNotice: (message: string) => void })
                   <PhraseButton
                     phrase={phrase}
                     phrasing={board.settings.phrasing}
+                    tone={pageTone(phrase.categoryId, group.category.order)}
                     onInsert={onInsert}
                     large
                   />
