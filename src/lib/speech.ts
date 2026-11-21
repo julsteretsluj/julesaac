@@ -1,4 +1,5 @@
 import type { SpeechRate } from "../types.ts";
+import { pickSpeakingVoice } from "./voices.ts";
 
 const RATES: Record<SpeechRate, number> = {
   slower: 0.82,
@@ -36,10 +37,9 @@ export function startSpeaking(options: {
   utterance.pitch = 1;
   utterance.volume = 1;
 
-  const voice = synth.getVoices().find((item) => item.voiceURI === options.voiceURI);
+  const voice = pickSpeakingVoice(synth.getVoices(), options.voiceURI);
   if (voice) {
     utterance.voice = voice;
-    utterance.lang = voice.lang;
   } else {
     utterance.lang = "en-US";
   }
@@ -48,8 +48,10 @@ export function startSpeaking(options: {
   utterance.onerror = (event) => options.onError(event.error);
 
   try {
-    synth.cancel();
-    synth.resume();
+    // Canceling while nothing is speaking makes Chrome on Mac drop the pitch
+    // of the next phrase, which is the "monster" voice.
+    if (synth.speaking || synth.pending) synth.cancel();
+    if (synth.paused) synth.resume();
     synth.speak(utterance);
   } catch {
     return null;

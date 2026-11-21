@@ -20,9 +20,11 @@ interface SpeechList {
 
 export function SettingsPanel({
   voices,
+  recommended,
   speechSupported,
 }: {
   voices: SpeechList[];
+  recommended: SpeechList | null;
   speechSupported: boolean;
 }) {
   const { board, dispatch } = useBoard();
@@ -113,23 +115,26 @@ export function SettingsPanel({
                   </label>
                   <select
                     id="voice"
-                    value={board.settings.voiceURI}
+                    value={
+                      voices.some((voice) => voice.voiceURI === board.settings.voiceURI)
+                        ? board.settings.voiceURI
+                        : ""
+                    }
                     onChange={(event) => dispatch({ type: "set-voice", voiceURI: event.target.value })}
                   >
-                    <option value="">Browser default</option>
-                    {board.settings.voiceURI &&
-                    !voices.some((voice) => voice.voiceURI === board.settings.voiceURI) ? (
-                      <option value={board.settings.voiceURI}>Saved voice</option>
-                    ) : null}
+                    <option value="">
+                      {recommended ? `${recommended.name} (recommended)` : "Recommended voice"}
+                    </option>
                     {voices.map((voice) => (
                       <option key={voice.voiceURI} value={voice.voiceURI}>
                         {voice.name} ({voice.lang})
                       </option>
                     ))}
                   </select>
-                  {voices.length === 0 ? (
-                    <p className="help">This browser picks the voice. A list appears here if it shares one.</p>
-                  ) : null}
+                  <p className="help">
+                    Recommended is a normal speaking voice. Sound-effect voices are left out because they are hard
+                    to understand.
+                  </p>
                 </div>
               </>
             ) : (

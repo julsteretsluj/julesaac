@@ -117,7 +117,13 @@ export default function App() {
             onShowLarge={onShowLarge}
           />
           {calm ? <CalmBoard onNotice={setStatus} /> : <BoardSection />}
-          {calm ? null : <SettingsPanel voices={speech.voices} speechSupported={speech.supported} />}
+          {calm ? null : (
+            <SettingsPanel
+              voices={speech.voices}
+              recommended={speech.recommended}
+              speechSupported={speech.supported}
+            />
+          )}
         </main>
       </div>
       {fullscreen ? (

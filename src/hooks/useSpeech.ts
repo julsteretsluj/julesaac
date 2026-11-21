@@ -1,11 +1,13 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { speechSupported, startSpeaking, stopSpeech } from "../lib/speech.ts";
+import { listSpeakingVoices, pickSpeakingVoice } from "../lib/voices.ts";
 import type { SpeechRate } from "../types.ts";
 
 export interface SpeechControls {
   supported: boolean;
   speaking: boolean;
   voices: SpeechSynthesisVoice[];
+  recommended: SpeechSynthesisVoice | null;
   speak: (text: string, handlers: { onEnd: () => void; onError: () => void }) => boolean;
   stop: () => void;
 }
@@ -14,6 +16,7 @@ export function useSpeech(rate: SpeechRate, voiceURI: string): SpeechControls {
   const [supported] = useState(speechSupported);
   const [speaking, setSpeaking] = useState(false);
   const [voices, setVoices] = useState<SpeechSynthesisVoice[]>([]);
+  const [recommended, setRecommended] = useState<SpeechSynthesisVoice | null>(null);
   const cancelRef = useRef<(() => void) | null>(null);
   const activeRef = useRef(0);
 
@@ -22,13 +25,8 @@ export function useSpeech(rate: SpeechRate, voiceURI: string): SpeechControls {
 
     const loadVoices = () => {
       const list = window.speechSynthesis.getVoices();
-      setVoices(
-        list.slice().sort((a, b) => {
-          const aEnglish = a.lang.toLowerCase().startsWith("en") ? 0 : 1;
-          const bEnglish = b.lang.toLowerCase().startsWith("en") ? 0 : 1;
-          return aEnglish - bEnglish || a.name.localeCompare(b.name);
-        }),
-      );
+      setVoices(listSpeakingVoices(list));
+      setRecommended(pickSpeakingVoice(list, ""));
     };
 
     loadVoices();
@@ -83,5 +81,5 @@ export function useSpeech(rate: SpeechRate, voiceURI: string): SpeechControls {
     return true;
   }, [rate, voiceURI]);
 
-  return { supported, speaking, voices, speak, stop };
+  return { supported, speaking, voices, recommended, speak, stop };
 }
